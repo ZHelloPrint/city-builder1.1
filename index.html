@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MetroForge</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+</head>
+<body>
+
+<div id="loadingScreen" class="screen">
+    <div class="loader-grid"></div>
+    <div class="loader-content">
+        <div class="loader-mark">M</div>
+        <div class="loader-title">METROFORGE</div>
+        <div class="loader-sub">CITY SIMULATION</div>
+        <div class="loader-bar"><span id="loadingBar"></span></div>
+        <div id="loadingText">INITIALIZING CITY ENGINE</div>
+    </div>
+</div>
+
+<div id="mainMenu" class="screen menu-screen hidden">
+    <div class="menu-backdrop"></div>
+    <div class="menu-content">
+        <div class="menu-kicker">METROFORGE / CITY SIMULATION</div>
+        <h1>Build something<br><span>worth living in.</span></h1>
+        <p>Shape terrain. Connect districts. Grow a city from the ground up.</p>
+
+        <div class="menu-actions">
+            <button class="menu-button primary" id="newGameButton"><span>New City</span><b>→</b></button>
+            <button class="menu-button" id="continueButton"><span>Continue</span><b>↗</b></button>
+            <button class="menu-button" id="mapButton"><span>Choose Map</span><b>⌄</b></button>
+        </div>
+
+        <div class="menu-footer">
+            <span>VERSION 0.2</span>
+            <span>LOCAL SAVE ENABLED</span>
+            <button id="menuSoundButton">SOUND ON</button>
+        </div>
+    </div>
+</div>
+
+<div id="mapMenu" class="screen hidden">
+    <div class="map-panel">
+        <button class="close-button" id="closeMapButton">×</button>
+        <div class="menu-kicker">WORLD / MAP SELECTION</div>
+        <h2>Choose your region</h2>
+        <p>Start small, then unlock larger regions as your city develops.</p>
+        <div id="mapCards" class="map-cards"></div>
+        <button class="menu-button primary map-confirm" id="mapConfirmButton">Enter Region <b>→</b></button>
+    </div>
+</div>
+
+<div id="game" class="hidden">
+    <div class="scene-vignette"></div>
+
+    <header class="topbar glass">
+        <div class="brand">
+            <button class="brand-icon" id="returnMenuButton">M</button>
+            <div>
+                <div class="brand-name">METROFORGE</div>
+                <div class="brand-sub" id="mapNameLabel">STARTER VALLEY</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">TREASURY</span>
+                <span class="stat-value money-value" id="money">$50,000</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">POPULATION</span>
+                <span class="stat-value" id="population">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">JOBS</span>
+                <span class="stat-value" id="jobs">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">HAPPINESS</span>
+                <span class="stat-value" id="happiness">75%</span>
+            </div>
+            <div class="stat compact-stat">
+                <span class="stat-label">REGION</span>
+                <span class="stat-value" id="regionLevel">1</span>
+            </div>
+        </div>
+
+        <div class="top-actions">
+            <button class="icon-button" id="soundButton" title="Sound">◉</button>
+            <button class="icon-button" id="saveButtonTop" title="Save">↓</button>
+        </div>
+    </header>
+
+    <aside class="toolbar glass">
+        <div class="toolbar-title">BUILD</div>
+
+        <button class="tool active" data-tool="select"><span class="tool-icon">⌁</span><span>Select</span></button>
+        <button class="tool" data-tool="road"><span class="tool-icon">╋</span><span>Roads</span></button>
+        <button class="tool" data-tool="residential"><span class="tool-icon">⌂</span><span>Residential</span></button>
+        <button class="tool" data-tool="commercial"><span class="tool-icon">▦</span><span>Commercial</span></button>
+        <button class="tool" data-tool="industrial"><span class="tool-icon">▤</span><span>Industrial</span></button>
+        <button class="tool" data-tool="develop"><span class="tool-icon">◆</span><span>Develop</span></button>
+
+        <div class="road-options" id="roadOptions">
+            <div class="mini-label">ROAD TYPE</div>
+            <button class="road-type active" data-road-type="local"><span>Local</span><small>$35/m</small></button>
+            <button class="road-type" data-road-type="boulevard"><span>Boulevard</span><small>$60/m</small></button>
+        </div>
+
+        <div class="divider"></div>
+        <button class="tool" data-tool="bulldoze"><span class="tool-icon">×</span><span>Bulldoze</span></button>
+        <button class="tool" data-tool="raise"><span class="tool-icon">↟</span><span>Raise Terrain</span></button>
+        <button class="tool" data-tool="lower"><span class="tool-icon">↡</span><span>Lower Terrain</span></button>
+        <button class="tool" data-tool="flatten"><span class="tool-icon">═</span><span>Flatten</span></button>
+
+        <div class="divider"></div>
+        <button class="tool" id="saveButton"><span class="tool-icon">↓</span><span>Save City</span></button>
+        <button class="tool" id="loadButton"><span class="tool-icon">↑</span><span>Load City</span></button>
+        <button class="tool" id="newButton"><span class="tool-icon">+</span><span>New City</span></button>
+    </aside>
+
+    <aside class="right-panel glass">
+        <div class="panel-heading">CITY OVERVIEW</div>
+        <div class="selected-name" id="selectedName">No Selection</div>
+        <div class="selected-type" id="selectedType">Select an object</div>
+        <div id="selectedInfo"></div>
+
+        <div class="demand-box">
+            <div class="panel-heading">DEMAND</div>
+            <div class="demand-row">
+                <div class="demand-header"><span>Residential</span><span id="resDemandText">65%</span></div>
+                <div class="demand-track"><div class="demand-fill residential-fill" id="resDemand"></div></div>
+            </div>
+            <div class="demand-row">
+                <div class="demand-header"><span>Commercial</span><span id="comDemandText">45%</span></div>
+                <div class="demand-track"><div class="demand-fill commercial-fill" id="comDemand"></div></div>
+            </div>
+            <div class="demand-row">
+                <div class="demand-header"><span>Industrial</span><span id="indDemandText">55%</span></div>
+                <div class="demand-track"><div class="demand-fill industrial-fill" id="indDemand"></div></div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-heading">REGION</div>
+            <div class="unlock-card">
+                <div><span>Map size</span><strong id="mapSizeLabel">260 × 260</strong></div>
+                <div><span>Expansion</span><strong id="expansionLabel">Locked</strong></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="bottom glass">
+        <div>
+            <div class="tool-status" id="toolStatus">SELECT TOOL</div>
+            <div class="tool-description" id="toolDescription">Click an object to inspect it.</div>
+        </div>
+
+        <div class="terrain-hint" id="terrainHint">WASD move · LMB rotate · RMB pan · Wheel zoom</div>
+
+        <div class="time-controls">
+            <button class="time-btn active" data-speed="0">II</button>
+            <button class="time-btn" data-speed="1">1×</button>
+            <button class="time-btn" data-speed="2">2×</button>
+            <button class="time-btn" data-speed="3">3×</button>
+            <div class="clock" id="clock">DAY 1 08:00</div>
+        </div>
+    </div>
+
+    <div id="notification"></div>
+    <div id="buildPreview"></div>
+    <div id="crosshair"></div>
+</div>
+
+<audio id="uiChime" preload="auto" src="audio/deep-ui-chime.mp3"></audio>
+</body>
+</html>
